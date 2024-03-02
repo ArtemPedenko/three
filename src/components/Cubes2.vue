@@ -52,7 +52,7 @@ const pbrTexture = await useTexture({
 
 const canvasRef = ref(null);
 
-const cameraPosition = reactive({ x: 0, y: 0, z: 3 });
+const cameraPosition = reactive({ x: 0, y: 0, z: 5 });
 
 const geometry = new BoxGeometry(2, 1, 1);
 const material = new MeshBasicMaterial({ color: 0xdc143c });
