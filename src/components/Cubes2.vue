@@ -39,29 +39,33 @@ import {
   PerspectiveCamera,
   TextureLoader,
   PlaneGeometry,
+  DoubleSide,
 } from "three";
 import { Text } from "troika-three-text";
-import {reactive, ref} from "vue";
-import { useLoader } from "@tresjs/core";
-import { useTexture, useRenderLoop } from '@tresjs/core';
-
+import { reactive, ref } from "vue";
+import { useTexture } from "@tresjs/core";
+import { OrbitControls } from "@tresjs/cientos";
 
 const pbrTexture = await useTexture({
-  map: '/images/person.png',
+  map: "/images/person.png",
 });
 
 const canvasRef = ref(null);
 
-const cameraPosition = reactive({ x: 0, y: 0, z: 5 });
+const cameraPosition = reactive({ x: 0, y: 0, z: 3 });
 
-const geometry = new BoxGeometry(1, 1, 1);
+const geometry = new BoxGeometry(2, 1, 1);
 const material = new MeshBasicMaterial({ color: 0xdc143c });
 const newColor = new Color(0x0000ff);
+const meshWithMaterial = new Mesh(geometry, material);
 
-const secondGeometry = new BoxGeometry(1, 1, 0.001);
-const secondMaterial = new MeshBasicMaterial({ color: 0x00ff00 });
-const qq = new MeshBasicMaterial({map: pbrTexture.map})
-const secondMesh = new Mesh(secondGeometry, qq);
+const secondGeometry = new PlaneGeometry(1, 1);
+const secondMaterial = new MeshBasicMaterial({
+  map: pbrTexture.map,
+  side: DoubleSide,
+  alphaTest: 1,
+});
+const secondMesh = new Mesh(secondGeometry, secondMaterial);
 
 secondMesh.position.set(2, 0, 0);
 
@@ -77,8 +81,6 @@ const fourthMesh = new Mesh(fourthGeometry, fourthMaterial);
 
 fourthMesh.position.set(0, -4, 0);
 
-const meshWithMaterial = new Mesh(geometry, material);
-
 const myText = new Text();
 myText.text = "Hello world!";
 myText.fontSize = 0.2;
@@ -93,7 +95,6 @@ const handleMeshClick = (intersection, pointerEvent) => {
 
 const handleScroll = (event) => {
   const deltaY = event.deltaY;
-  console.log(cameraPosition.y - deltaY * 0.01);
   if (cameraPosition.y - deltaY * 0.01 < 1) {
     cameraPosition.y -= deltaY * 0.01;
   }
