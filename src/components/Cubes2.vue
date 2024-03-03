@@ -12,20 +12,43 @@
         :near="0.1"
         :far="1000"
       />
-      <primitive :object="myText" />
+
       <primitive
-        :object="meshWithMaterial"
+        :object="secondMesh"
         @click="
           (intersection, pointerEvent) =>
             handleMeshClick(intersection, pointerEvent)
         "
       />
-      <primitive :object="secondMesh" />
+      <primitive :object="myText" />
       <primitive :object="thirdMesh" />
-      <primitive :object="fourthMesh" />
     </TresCanvas>
-    <div style="position: absolute; top: 10px; left: 10px; z-index: 100">
-      <input />
+    <div
+      v-if="modal"
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+      "
+      @click="handleMeshClick"
+    >
+      <div
+        style="
+          padding: 100px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: bisque;
+        "
+      >
+        <input />
+      </div>
     </div>
   </div>
 </template>
@@ -33,70 +56,74 @@
 <script setup>
 import {
   Mesh,
-  BoxGeometry,
   MeshBasicMaterial,
-  Color,
-  PerspectiveCamera,
-  TextureLoader,
   PlaneGeometry,
   DoubleSide,
+  BoxGeometry,
 } from "three";
-import { Text } from "troika-three-text";
 import { reactive, ref } from "vue";
 import { useTexture } from "@tresjs/core";
-import { OrbitControls } from "@tresjs/cientos";
+import { Text } from "troika-three-text";
 
 const pbrTexture = await useTexture({
   map: "/images/person.png",
 });
-
+const modal = ref(false);
 const canvasRef = ref(null);
 
-const cameraPosition = reactive({ x: 0, y: 0, z: 5 });
-
-const geometry = new BoxGeometry(2, 1, 1);
-const material = new MeshBasicMaterial({ color: 0xdc143c });
-const newColor = new Color(0x0000ff);
-const meshWithMaterial = new Mesh(geometry, material);
+const cameraPosition = reactive({ x: 0, y: 0, z: 4 });
 
 const secondGeometry = new PlaneGeometry(1, 1);
 const secondMaterial = new MeshBasicMaterial({
   map: pbrTexture.map,
   side: DoubleSide,
-  alphaTest: 1,
+  transparent: true,
+  opacity: calculateOpacity(19 - Math.abs(cameraPosition.z)),
 });
 const secondMesh = new Mesh(secondGeometry, secondMaterial);
-
-secondMesh.position.set(2, 0, 0);
+secondMesh.position.set(0, 0, -15);
 
 const thirdGeometry = new BoxGeometry(1, 1, 1);
-const thirdMaterial = new MeshBasicMaterial({ color: 0xff0000 });
+const thirdMaterial = new MeshBasicMaterial({
+  map: pbrTexture.map,
+  transparent: true,
+  opacity: calculateOpacity(19 - Math.abs(cameraPosition.z)),
+});
 const thirdMesh = new Mesh(thirdGeometry, thirdMaterial);
 
-thirdMesh.position.set(0, -2, 0);
-
-const fourthGeometry = new BoxGeometry(1, 1, 1);
-const fourthMaterial = new MeshBasicMaterial({ color: 0xffff00 });
-const fourthMesh = new Mesh(fourthGeometry, fourthMaterial);
-
-fourthMesh.position.set(0, -4, 0);
+thirdMesh.position.set(0, 0, -20);
 
 const myText = new Text();
-myText.text = "Hello world!";
-myText.fontSize = 0.2;
-myText.position.z = -2;
-myText.color = 0x9966ff;
-myText.position.set(0, 0, 1);
+myText.text = "Профит Лига";
+myText.fontSize = 0.5;
+myText.color = 0x8b0000;
+myText.position.set(-1.5, 0.5, -0.5);
 
-///////
-const handleMeshClick = (intersection, pointerEvent) => {
-  material.color = newColor;
-};
+function calculateOpacity(distance) {
+  let distance1 = 10;
+  let opacity1 = 1;
+  let distance2 = 15;
+  let opacity2 = 0;
+  let opacity =
+    opacity1 +
+    ((opacity2 - opacity1) * (distance - distance1)) / (distance2 - distance1);
+  opacity = Math.max(0, Math.min(1, opacity));
+  return opacity;
+}
 
 const handleScroll = (event) => {
   const deltaY = event.deltaY;
-  if (cameraPosition.y - deltaY * 0.01 < 1) {
-    cameraPosition.y -= deltaY * 0.01;
+  //console.log(cameraPosition.z);
+  if (cameraPosition.z + deltaY * 0.01 < 6) {
+    cameraPosition.z += deltaY * 0.01;
   }
+  secondMaterial.opacity = calculateOpacity(19 - Math.abs(cameraPosition.z));
+  thirdMaterial.opacity = calculateOpacity(19 - Math.abs(cameraPosition.z));
+
+  //  console.log("cameraPosition.z", cameraPosition.z);
+  console.log(calculateOpacity(19 - Math.abs(cameraPosition.z)));
+};
+const handleMeshClick = (intersection, pointerEvent) => {
+  modal.value = !modal.value;
 };
 </script>
